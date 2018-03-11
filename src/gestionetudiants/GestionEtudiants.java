@@ -20,10 +20,7 @@ public class GestionEtudiants {
         // TODO code application logic here
         EtudiantsManagerJFrame StudentsFrameManager = new EtudiantsManagerJFrame();
         StudentsFrameManager.setVisible(true);
-        // Tester la connexion avec la base ici j'appelle mon singleton 
-        ConnectionSingleton.getInstance();
-        // supposons que je je refais l'appel une autre fois 
-        ConnectionSingleton.getInstance();
+
         
     }
     

@@ -43,12 +43,10 @@ public class ConnectionSingleton {
    public static Connection getInstance(){
     if(connect == null){
       new ConnectionSingleton();// appel du constructeur seulement une fois lorsque l'objet connect est null sinon on retourne l'objet déja crée
-      System.out.println("Instanciation de la connexion vers mySQl ! ");
-    }else{
-       // ce message s'affiche lorsque nous avons déja un objet de connexion et c'est ce que nous voulons par le singleton.
-      System.out.println("Connexion Existante ");  
     }
     return connect;   
   }   
 }
 // Maintenant nous allons mettre notre projet sur Github un site très connu pour versionner les projets IT!!!!
+// en fait il y a plusieurs méthodes pour envoyer un projet vers github dans la prochaine vidéo je vous présente la méthode avec la ligne de commande
+// à la prochaine vidéo.

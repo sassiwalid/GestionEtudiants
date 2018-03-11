@@ -5,6 +5,15 @@
  */
 package gestionetudiants;
 
+import Models.Etudiant;
+import gestionetudiants.Controllers.EtudiantsController;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author walidsassi
@@ -38,7 +47,7 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         SectionCombo = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
-        BirthdateChooser = new datechooser.beans.DateChooserCombo();
+        jDateBirthday = new com.toedter.calendar.JDateChooser();
         jPanel1 = new javax.swing.JPanel();
         StudentsTable = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
@@ -81,8 +90,8 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
                 .addGroup(jPanelStudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelStudentLayout.createSequentialGroup()
                         .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(BirthdateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jDateBirthday, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanelStudentLayout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addGap(32, 32, 32)
@@ -97,7 +106,7 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
                             .addComponent(PrenomTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(NomTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(MatriculeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addContainerGap(46, Short.MAX_VALUE))
         );
         jPanelStudentLayout.setVerticalGroup(
             jPanelStudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -121,7 +130,7 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanelStudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel6)
-                    .addComponent(BirthdateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jDateBirthday, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(17, Short.MAX_VALUE))
         );
 
@@ -206,10 +215,10 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
                     .addComponent(UpdateBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                     .addComponent(AddBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(DeleteBtn)
-                    .addComponent(ClearBtn))
-                .addGap(36, 36, 36))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(DeleteBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                    .addComponent(ClearBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(17, 17, 17))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -307,9 +316,40 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    // ici le code du clique sur le bouton ajouter 
     private void AddBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddBtnActionPerformed
         // TODO add your handling code here:
+        Etudiant e;
+        //J'ai commencé par instancier un objet étudiant qui contiendra tous les informations prises de la vue (mon EtudiantManagerJframe)
+        // créer un objet étudiant avec les données des différents composants Swing
+        e = new Etudiant(Integer.parseInt(MatriculeTextField.getText()), NomTextField.getText(), PrenomTextField.getText(), SectionCombo.getSelectedItem().toString(), jDateBirthday.getCalendar().getTime());
+//Créer un objet de type EtuidantsController qui constitue le controlleur qui va insérer les données dans la base mysql et aussi les récupérer 
+// je garde dans ma tête cette idée de découplage entre la vue et le controlleur et le modéle il ne faut pas agir sur la base depuis la vue
+//il faur que le controlleur agit tout seul sur les données de la base.
+       EtudiantsController Vc = new EtudiantsController();
+       // en cas de succées on agit sur notre jTable afin d'afficher les données 
+       if (Vc.addStudent(e)){
+            try {
+                // tout d'abord je commence par la création du modele de notre Jtable
+                DefaultTableModel model = new DefaultTableModel(new String[]{"CIN", "Nom", "Prenom","Section","Date de naissance"}, 0);
+                // je lance maintenant ma requête, toujours les requêtes dans le contrôlleur c'est le principe de MVC
+                // on récupére un resultSet {un ensemble d'enregistrement(tuples) de notre table}
+                ResultSet rs = Vc.GetStudents();
+                // On commence le parcours de cet ensemble d'enregistrements
+                while(rs.next()){
+                    int cin = rs.getInt("Cin");// il faut veiller que le nom et les types des champs récupéré coincident avec celles en BD
+                    String nom = rs.getString("Nom");
+                    String prenom = rs.getString("Prenom");
+                    String section = rs.getString("Section");
+                    Date naissance = rs.getDate("DateNaissance");
+                    model.addRow(new Object[]{cin, nom, prenom,section,naissance});// ajouter ces élèments au model de la Jtable
+                }   
+            // en fin de parcours on insère ce modele dans la Jtable
+            StudentsTable.setModel(model);
+            } catch (SQLException ex) {
+                Logger.getLogger(EtudiantsManagerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+       }  
     }//GEN-LAST:event_AddBtnActionPerformed
 
     private void DeleteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteBtnActionPerformed
@@ -353,7 +393,6 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton AddBtn;
-    private datechooser.beans.DateChooserCombo BirthdateChooser;
     private javax.swing.JButton ClearBtn;
     private javax.swing.JButton DeleteBtn;
     private javax.swing.JTextField MatriculeTextField;
@@ -364,6 +403,7 @@ public class EtudiantsManagerJFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> SectionCombo;
     private javax.swing.JTable StudentsTable;
     private javax.swing.JButton UpdateBtn;
+    private com.toedter.calendar.JDateChooser jDateBirthday;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
